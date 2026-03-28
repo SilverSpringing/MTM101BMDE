@@ -14,7 +14,7 @@ namespace MTM101BaldAPI.AssetTools.SpriteSheets
     public static class SpriteSheetLoader
     {
         /// <summary>
-        /// Loads an Aesprite JSON file from the specified file path.
+        /// Loads an Aseprite JSON file from the specified file path.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="pixelsPerUnit"></param>
@@ -29,7 +29,7 @@ namespace MTM101BaldAPI.AssetTools.SpriteSheets
         }
 
         /// <summary>
-        /// Loads an Aesprite JSON file from the specified mod path.
+        /// Loads an Aseprite JSON file from the specified mod path.
         /// </summary>
         /// <param name="plugin"></param>
         /// <param name="pixelsPerUnit"></param>
