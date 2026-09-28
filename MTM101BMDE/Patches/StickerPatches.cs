@@ -27,8 +27,9 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerScreenController))]
         [HarmonyPatch("ApplyHeldSticker")]
         [HarmonyPriority(Priority.Last)]
-        static bool ApplyHeldStickerPrefix(StickerScreenController __instance, int slot, ref bool ___holdingSticker, int ___heldStickerInventoryId, GameObject ___dropStickerButton, SoundObject ___audApply, Sprite ___cursorOpenSprite)
+        static bool ApplyHeldStickerPrefix(StickerScreenController __instance, int slot, ref bool ___holdingSticker, int ___heldStickerInventoryId, GameObject ___dropStickerButton, SoundObject ___audApply, Sprite ___cursorOpenSprite, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             if (!___holdingSticker) return false;
             StickerStateData heldData = Singleton<StickerManager>.Instance.stickerInventory[___heldStickerInventoryId];
             if (!heldData.CanCover(Singleton<StickerManager>.Instance.activeStickerData[slot], ___heldStickerInventoryId, slot)) return false;
@@ -57,8 +58,9 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("ApplySticker")]
         [HarmonyPriority(Priority.Last)]
-        static bool ApplyStickerPrefix(StickerStateData sticker, int slot, StickerManager __instance, int[] ___appliedStickerRemainingNotebooks, StickerManager.StickerAppliedDelegate ___OnStickerApplied)
+        static bool ApplyStickerPrefix(StickerStateData sticker, int slot, StickerManager __instance, int[] ___appliedStickerRemainingNotebooks, StickerManager.StickerAppliedDelegate ___OnStickerApplied, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             StickerMetaStorage.Instance.Get(sticker.sticker).value.ApplySticker(__instance, sticker, slot);
             // doing it like this should avoid accidental incompatabilities with 10.2.0.0 due to me. not knowing this was down
             if (__instance.notebooksDecayStickers)
@@ -75,15 +77,16 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPriority(Priority.Last)]
         static void StickerCanBeCoveredPrefix(int slot, StickerManager __instance)
         {
-            throw new Exception("Do not call StickerCanBeCovered, as the API has obsoleted this method. Call [TODO] instead!");
+            throw new Exception("Do not call StickerCanBeCovered, as the API has obsoleted this method. Call StickerManager.activeStickerData[slot].GetMeta().value.CanBeCovered with the StickerData instead!");
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("StickerCanBeApplied")]
         [HarmonyPriority(Priority.Last)]
-        static bool StickerCanBeAppliedPrefix(Sticker sticker, StickerManager __instance, ref bool __result)
+        static bool StickerCanBeAppliedPrefix(Sticker sticker, StickerManager __instance, ref bool __result, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             __result = StickerMetaStorage.Instance.Get(sticker).value.CanBeApplied();
             return false;
         }
@@ -91,7 +94,7 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPostfix]
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("StickerValue")]
-        [HarmonyPriority(Priority.Last)]
+        [HarmonyPriority(Priority.First)]
         static void StickerValuePostfix(Sticker sticker, ref int __result)
         {
             if (StickerMetaStorage.Instance.Get(sticker) == null)
@@ -106,8 +109,9 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("GetAppliedStickerSprite")]
         [HarmonyPriority(Priority.Last)]
-        static bool GetAppliedStickerSpritePrefix(StickerManager __instance, int inventoryId, ref Sprite __result)
+        static bool GetAppliedStickerSpritePrefix(StickerManager __instance, int inventoryId, ref Sprite __result, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             __result = StickerMetaStorage.Instance.Get(__instance.activeStickerData[inventoryId].sticker).value.GetAppliedSprite(__instance.activeStickerData[inventoryId]);
             return false;
         }
@@ -116,8 +120,9 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("GetInventoryStickerSprite")]
         [HarmonyPriority(Priority.Last)]
-        static bool GetInventoryStickerSpritePrefix(StickerManager __instance, int inventoryId, ref Sprite __result)
+        static bool GetInventoryStickerSpritePrefix(StickerManager __instance, int inventoryId, ref Sprite __result, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             if (!__instance.stickerInventory[inventoryId].opened) return true;
             __result = StickerMetaStorage.Instance.Get(__instance.stickerInventory[inventoryId].sticker).value.GetInventorySprite(__instance.stickerInventory[inventoryId]);
             return false;
@@ -127,8 +132,9 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("GetLocalizedAppliedStickerDescription")]
         [HarmonyPriority(Priority.Last)]
-        static bool GetLocalizedAppliedStickerDescriptionPrefix(StickerManager __instance, int slot, ref string __result)
+        static bool GetLocalizedAppliedStickerDescriptionPrefix(StickerManager __instance, int slot, ref string __result, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             __result = StickerMetaStorage.Instance.Get(__instance.activeStickerData[slot].sticker).value.GetLocalizedAppliedStickerDescription(__instance.activeStickerData[slot]);
             return false;
         }
@@ -137,8 +143,9 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("GetLocalizedInventoryStickerDescription")]
         [HarmonyPriority(Priority.Last)]
-        static bool GetLocalizedInventoryStickerDescriptionPrefix(StickerManager __instance, int slot, ref string __result)
+        static bool GetLocalizedInventoryStickerDescriptionPrefix(StickerManager __instance, int slot, ref string __result, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             if (!__instance.stickerInventory[slot].opened) return true;
             __result = StickerMetaStorage.Instance.Get(__instance.stickerInventory[slot].sticker).value.GetLocalizedInventoryStickerDescription(__instance.stickerInventory[slot]);
             return false;
@@ -148,8 +155,9 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("OpenUnopenedStickerPackets")]
         [HarmonyPriority(Priority.Last)]
-        static bool OpenUnopenedStickerPacketsPrefix(StickerManager __instance, bool animation)
+        static bool OpenUnopenedStickerPacketsPrefix(StickerManager __instance, bool animation, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             for (int i = 0; i < __instance.stickerInventory.Count; i++)
             {
                 if (__instance.stickerInventory[i].opened) continue;
@@ -189,9 +197,21 @@ namespace MTM101BaldAPI.Patches
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("GetStickerOddsMultiplier")]
         [HarmonyPriority(Priority.Last)]
-        static bool GetStickerOddsMultiplierPrefix(StickerManager __instance, Sticker sticker, ref float __result)
+        static bool GetStickerOddsMultiplierPrefix(StickerManager __instance, Sticker sticker, ref float __result, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             __result = StickerMetaStorage.Instance.Get(sticker).value.CalculateDuplicateOddsMultiplier(__instance);
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StickerManager))]
+        [HarmonyPatch("AddStickerToInventory")]
+        [HarmonyPriority(Priority.First)]
+        static bool AddStickerToInventoryPrefix(StickerManager __instance, Sticker sticker, bool displayAnimation, ref bool __runOriginal)
+        {
+            if (!__runOriginal) return false;
+            __instance.AddSticker(sticker, true, false, displayAnimation);
             return false;
         }
 
@@ -270,69 +290,13 @@ namespace MTM101BaldAPI.Patches
             yield break;
         }
 
-
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(StickerManager))]
-        [HarmonyPatch("GiveIdenticalRandomStickers")]
-        [HarmonyPriority(Priority.First)]
-        static IEnumerable<CodeInstruction> GiveIdenticalStickersTranspiler(IEnumerable<CodeInstruction> instructionsE)
-        {
-            CodeInstruction[] instructions = instructionsE.ToArray();
-            bool patched = false;
-            for (int i = 0; i < instructions.Length; i++)
-            {
-                if (((i + 9) >= instructions.Length) || patched)
-                {
-                    yield return instructions[i];
-                    continue;
-                }
-                if ((instructions[i].opcode == OpCodes.Ldarg_0)
-                    &&
-                    ((instructions[i + 1].opcode == OpCodes.Ldfld) && ((FieldInfo)instructions[i + 1].operand == _stickerInventory))
-                    &&
-                    (instructions[i + 2].opcode == OpCodes.Ldloc_0)
-                    &&
-                    (instructions[i + 3].opcode == OpCodes.Ldc_I4_0)
-                    &&
-                    (instructions[i + 4].opcode == OpCodes.Ldarg_3)
-                    &&
-                    (instructions[i + 5].opcode == OpCodes.Ldc_I4_0)
-                    &&
-                    (instructions[i + 6].opcode == OpCodes.Newobj)
-                    &&
-                    (instructions[i + 7].opcode == OpCodes.Callvirt))
-                {
-                    patched = true;
-                    yield return instructions[i];
-                    yield return instructions[i + 2];
-                    yield return new CodeInstruction(OpCodes.Call, _AddSticker);
-                    i += 7;
-                    continue;
-                }
-                yield return instructions[i];
-            }
-            if (!patched) throw new NotImplementedException("Unable to patch StickerManager.GiveIdenticalRandomStickers!");
-            yield break;
-        }
-
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(StickerManager))]
-        [HarmonyPatch("GiveNormalRandomStickers")]
-        [HarmonyPriority(Priority.First)]
-        static IEnumerable<CodeInstruction> GiveNormalRandomStickersTranspiler(IEnumerable<CodeInstruction> instructionsE) => GenericGiveRandomStickersTranspiler(instructionsE, "GiveNormalRandomStickers");
-
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(StickerManager))]
-        [HarmonyPatch("GiveRandomBonusStickers")]
-        [HarmonyPriority(Priority.First)]
-        static IEnumerable<CodeInstruction> GiveRandomBonusStickersTranspiler(IEnumerable<CodeInstruction> instructionsE) => GenericGiveRandomStickersTranspiler(instructionsE, "GiveRandomBonusStickers");
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(StickerManager))]
         [HarmonyPatch("GiveNewRandomStickers")]
         [HarmonyPriority(Priority.Last)]
-        static bool GiveNewRandomStickers(StickerManager __instance, WeightedSticker[] potentialStickers, int amount, bool openNow, List<WeightedSticker> ____potentialStickersToAdd)
+        static bool GiveNewRandomStickers(StickerManager __instance, WeightedSticker[] potentialStickers, int amount, bool openNow, List<WeightedSticker> ____potentialStickersToAdd, ref bool __runOriginal)
         {
+            if (!__runOriginal) return false;
             // TODO: remember to update when mystman12 fixes the bugs with this
             Dictionary<Sticker, int> totalInPossesion = new Dictionary<Sticker, int>();
             for (int i = 0; i < amount; i++)
@@ -375,63 +339,6 @@ namespace MTM101BaldAPI.Patches
                 //AddRandomSticker(__instance, ____potentialStickersToAdd.RandomSelection(), openNow, false);
             }
             return false;
-        }
-
-        /*
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(StickerManager))]
-        [HarmonyPatch("GiveNewRandomStickers")]
-        [HarmonyPriority(Priority.First)]
-        static IEnumerable<CodeInstruction> GiveNewRandomStickersTranspiler(IEnumerable<CodeInstruction> instructionsE) => GenericGiveRandomStickersTranspiler(instructionsE, "GiveNewRandomStickers");*/
-
-        static IEnumerable<CodeInstruction> GenericGiveRandomStickersTranspiler(IEnumerable<CodeInstruction> instructionsE, string message)
-        {
-            CodeInstruction[] instructions = instructionsE.ToArray();
-            bool patched = false;
-            for (int i = 0; i < instructions.Length; i++)
-            {
-                if ((i + 9) >= instructions.Length)
-                {
-                    yield return instructions[i];
-                    continue;
-                }
-                if ((instructions[i].opcode == OpCodes.Ldarg_0)
-                    &&
-                    ((instructions[i + 1].opcode == OpCodes.Ldfld) && ((FieldInfo)instructions[i + 1].operand == _stickerInventory))
-                    &&
-                    (instructions[i + 2].opcode == OpCodes.Ldarg_0)
-                    &&
-                    (instructions[i + 3].opcode == OpCodes.Ldfld)
-                    &&
-                    (instructions[i + 4].opcode == OpCodes.Call)
-                    &&
-                    (instructions[i + 5].opcode == OpCodes.Ldc_I4_0)
-                    &&
-                    (instructions[i + 6].opcode == OpCodes.Ldarg_3)
-                    &&
-                    ((instructions[i + 7].opcode == OpCodes.Ldarg_S) || (instructions[i + 7].opcode == OpCodes.Ldc_I4_0))
-                    &&
-                    (instructions[i + 8].opcode == OpCodes.Newobj)
-                    &&
-                    (instructions[i + 9].opcode == OpCodes.Callvirt))
-                {
-                    MTM101BaldiDevAPI.Log.LogDebug(message + " patched at instruction: " + i);
-                    patched = true;
-                    // two this' as the first one gets popped for _potentialStickersToAdd
-                    yield return instructions[i]; // this
-                    yield return instructions[i + 2]; // this
-                    yield return instructions[i + 3]; // _potentialStickersToAdd
-                    yield return instructions[i + 4]; // call RandomSelection
-                    yield return instructions[i + 6]; // openNow
-                    yield return instructions[i + 7]; // depending on what we are patching either 0 or sticky parameter
-                    yield return new CodeInstruction(OpCodes.Call, _AddRandomSticker);
-                    i += 9;
-                    continue;
-                }
-                yield return instructions[i];
-            }
-            if (!patched) throw new NotImplementedException("Unable to patch " + message + "!");
-            yield break;
         }
     }
 }
